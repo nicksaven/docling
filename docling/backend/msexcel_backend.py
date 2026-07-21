@@ -162,9 +162,12 @@ class _MergedCellIndex:
 
         for merged_range in sheet.merged_cells.ranges:
             anchor = (merged_range.min_row - 1, merged_range.min_col - 1)
-            self._anchor_spans[anchor] = (
-                merged_range.max_row - merged_range.min_row + 1,
-                merged_range.max_col - merged_range.min_col + 1,
+            self._anchor_spans.setdefault(
+                anchor,
+                (
+                    merged_range.max_row - merged_range.min_row + 1,
+                    merged_range.max_col - merged_range.min_col + 1,
+                ),
             )
             min_row = (
                 merged_range.min_row
@@ -840,6 +843,8 @@ class MsExcelDocumentBackend(DeclarativeDocumentBackend, PaginatedDocumentBacken
 
         Args:
             sheet: The worksheet to analyze.
+            merged_cell_index: Index containing merged-cell anchors, spans, and
+                bounds for the worksheet.
 
         Returns:
             A data region representing the smallest rectangle that covers all data and merged cells.

@@ -1,4 +1,17 @@
-"""Benchmark XLSX conversion with many merged ranges."""
+"""Benchmark full XLSX conversion for worksheets with many merged ranges.
+
+The script generates temporary workbooks containing horizontal ``A:C`` merges and
+an ordinary value in column ``D``, then converts each workbook through
+``DocumentConverter``. Each result is emitted as one JSON object per line and
+includes generation time, conversion time, and peak Python memory usage.
+
+Run from the repository root, for example::
+
+    uv run python perfs/xlsx_merged_cells.py --merge-count 100 1000
+    uv run python perfs/xlsx_merged_cells.py --merge-count 5000 --output results.jsonl
+
+Progress is written to stderr so stdout remains valid JSONL.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +28,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from openpyxl import Workbook
+from tqdm import tqdm
 
 from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter
@@ -167,7 +181,11 @@ def main() -> None:
                 merge_count=merge_count,
                 runtime_info=runtime_info,
             )
-            for merge_count in args.merge_count
+            for merge_count in tqdm(
+                args.merge_count,
+                desc="Benchmarking merged ranges",
+                unit="workbook",
+            )
         ]
 
     output = "".join(
